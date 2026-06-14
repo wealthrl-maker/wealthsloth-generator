@@ -610,6 +610,51 @@
     .settings-grid { grid-template-columns: 1fr; }
   }
 
+  /* ─── THUMBNAIL TAB ──────────────────────────────────── */
+  .trigger-opt {
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 10px 12px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .trigger-opt:hover { border-color: var(--grey-dim); }
+  .trigger-opt.selected { border-color: var(--wine); background: rgba(107,15,26,0.15); }
+  .trigger-name { font-weight: 600; font-size: 12px; color: var(--off-white); margin-bottom: 3px; }
+  .trigger-ex { font-size: 9px; color: var(--grey-mid); line-height: 1.5; }
+
+  .pose-opt {
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .pose-opt:hover { border-color: var(--grey-dim); }
+  .pose-opt.selected { border-color: var(--wine); background: rgba(107,15,26,0.15); }
+  .pose-name { font-weight: 600; font-size: 11px; color: var(--off-white); margin-bottom: 2px; }
+  .pose-desc { font-size: 9px; color: var(--grey-mid); line-height: 1.4; }
+
+  .check-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11px;
+    color: var(--grey-mid);
+    cursor: pointer;
+    line-height: 1.4;
+  }
+  .check-item input[type="checkbox"] {
+    width: 13px; height: 13px;
+    min-width: 13px;
+    margin-top: 1px;
+    accent-color: var(--wine);
+    cursor: pointer;
+  }
+  .check-item:has(input:checked) { color: var(--off-white); }
+
   /* ─── STATUS INDICATOR ───────────────────────────────── */
   .status-dot {
     width: 6px; height: 6px;
@@ -654,6 +699,7 @@
 <div class="tab-bar">
   <button class="tab-btn active" onclick="showTab('images')" id="tab-images">Images</button>
   <button class="tab-btn" onclick="showTab('animate')" id="tab-animate">Animate</button>
+  <button class="tab-btn" onclick="showTab('thumbnail')" id="tab-thumbnail">Thumbnail <span style="color:var(--wine);font-size:9px;vertical-align:middle;">★</span></button>
   <button class="tab-btn" onclick="showTab('history')" id="tab-history">History <span id="histCount" style="color:var(--grey-dim);"></span></button>
   <button class="tab-btn" onclick="showTab('settings')" id="tab-settings">Settings</button>
 </div>
@@ -889,6 +935,151 @@
       </div>
     </div>
 
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- THUMBNAIL TAB -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-thumbnail">
+  <div class="two-col">
+
+    <!-- LEFT: controls -->
+    <div>
+
+      <!-- Trigger -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Step 1 — Choose Your Trigger</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:12px;">Every thumbnail operates on exactly one. Everything else builds around it.</p>
+        <div id="triggerGrid" style="display:flex;flex-direction:column;gap:6px;">
+          <div class="trigger-opt" data-trigger="fear" onclick="selectTrigger(this)">
+            <div class="trigger-name">Fear Recognition</div>
+            <div class="trigger-ex">"IT'S HAPPENING AGAIN" · "BRACE YOURSELF" · "THIS ALREADY STARTED"</div>
+          </div>
+          <div class="trigger-opt" data-trigger="self" onclick="selectTrigger(this)">
+            <div class="trigger-name">Self Recognition</div>
+            <div class="trigger-ex">"YOU'RE DOING THIS" · "THIS IS YOU" · "STOP THIS NOW"</div>
+          </div>
+          <div class="trigger-opt" data-trigger="question" onclick="selectTrigger(this)">
+            <div class="trigger-name">Incomplete Question</div>
+            <div class="trigger-ex">"WHERE DID IT GO" · "THEY KNEW THIS" · "IT'S ALREADY GONE"</div>
+          </div>
+          <div class="trigger-opt" data-trigger="value" onclick="selectTrigger(this)">
+            <div class="trigger-name">Massive Value Promise</div>
+            <div class="trigger-ex">"EVERYTHING THEY OWN" · "ALL OF IT EXPLAINED" · "THE FULL PICTURE"</div>
+          </div>
+          <div class="trigger-opt" data-trigger="voyeur" onclick="selectTrigger(this)">
+            <div class="trigger-name">Social Voyeurism</div>
+            <div class="trigger-ex">"WHAT HE ACTUALLY EARNS" · "THEY HIDE THIS NUMBER" · "WHAT THEY WON'T SHOW YOU"</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pose -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Step 2 — MR.TIE Pose</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Pose must match the trigger. Never repeat the same pose in consecutive thumbnails.</p>
+        <div id="poseGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+          <div class="pose-opt" data-pose="default" onclick="selectPose(this)">
+            <div class="pose-name">Default / Hero</div>
+            <div class="pose-desc">Hands clasped, facing camera. Calm. Authoritative.</div>
+          </div>
+          <div class="pose-opt" data-pose="side" onclick="selectPose(this)">
+            <div class="pose-name">Side Profile</div>
+            <div class="pose-desc">Facing left. Arms crossed or clasped. Contemplative.</div>
+          </div>
+          <div class="pose-opt" data-pose="thinking" onclick="selectPose(this)">
+            <div class="pose-name">Thinking</div>
+            <div class="pose-desc">Hand raised to chin. Head tilted slightly. Eyes forward.</div>
+          </div>
+          <div class="pose-opt" data-pose="pointing" onclick="selectPose(this)">
+            <div class="pose-name">Pointing</div>
+            <div class="pose-desc">One arm extended, finger pointing at screen or chart.</div>
+          </div>
+          <div class="pose-opt" data-pose="seated" onclick="selectPose(this)">
+            <div class="pose-name">Seated</div>
+            <div class="pose-desc">Upright in chair. Hands on desk or lap. Never slouched.</div>
+          </div>
+          <div class="pose-opt" data-pose="back" onclick="selectPose(this)">
+            <div class="pose-name">Back View</div>
+            <div class="pose-desc">Full suit back visible. Looking at cityscape or screen ahead.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thumbnail Text -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Step 3 — Thumbnail Text</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Max 5 words. Must deepen the gap — not answer it. All caps, Bebas Neue or Montserrat Bold.</p>
+        <div class="field">
+          <label>Text overlay — <span id="thumbWordCount" style="color:var(--gold);">0</span>/5 words</label>
+          <input type="text" id="thumbText" placeholder="THEY HIDE THIS NUMBER" oninput="updateThumbWordCount()" style="text-transform:uppercase;font-weight:600;letter-spacing:0.05em;">
+        </div>
+        <div id="thumbTextWarning" style="display:none;font-size:10px;color:#c0392b;margin-top:4px;">⚠ Over 5 words — thumbnails with more than 5 words lose CTR at small sizes</div>
+      </div>
+
+      <!-- Scene Description -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Step 4 — Scene Context</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Describe any props, objects, or environment. MR.TIE character prompt is auto-included.</p>
+        <div class="field">
+          <label>Scene description (optional)</label>
+          <textarea id="thumbScene" rows="3" placeholder="e.g. a stack of cash with a wine red neon glow, a falling stock chart in the background..."></textarea>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: checklist + generate -->
+    <div>
+
+      <!-- Pre-flight checklist -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Pre-Flight Checklist</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:12px;">All must be YES before publishing.</p>
+        <div id="checklistItems" style="display:flex;flex-direction:column;gap:8px;">
+          <label class="check-item"><input type="checkbox" class="thumb-check"> MR.TIE is present and clearly visible</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> Background is pure black (#000000)</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> Text is 5 words or fewer</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> Image creates a "Wo" reaction before text is read</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> Text deepens the gap — does not answer it</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> One trigger selected and everything built around it</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> One and only one wine red accent element</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> Readable at 120px wide</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> MR.TIE pose differs from last two thumbnails</label>
+          <label class="check-item"><input type="checkbox" class="thumb-check"> Thumbnail conveys an event — not just a mood</label>
+        </div>
+        <div id="checklistScore" style="margin-top:12px;font-size:11px;color:var(--grey-mid);"></div>
+      </div>
+
+      <!-- Cost + Generate -->
+      <div class="card" style="margin-bottom:14px;">
+        <div style="background:rgba(107,15,26,0.1);border:1px solid var(--border-wine);border-radius:4px;padding:8px 12px;margin-bottom:10px;font-size:10px;color:var(--grey-mid);">
+          <span style="color:var(--wine);font-weight:600;">Flux Pro</span> · 16:9 · 1280×720 · $0.055/image
+        </div>
+        <div class="cost-bar">
+          <span class="cost-label">Estimated cost</span>
+          <span class="cost-value">$0.055</span>
+        </div>
+        <button class="generate-btn" id="thumbGenBtn" onclick="generateThumbnail()">GENERATE THUMBNAIL</button>
+        <div class="progress-wrap" id="thumbProgress">
+          <div class="progress-track"><div class="progress-fill" id="thumbProgressFill"></div></div>
+          <div class="progress-text" id="thumbProgressText">Building prompt...</div>
+        </div>
+      </div>
+
+      <!-- Output -->
+      <div class="card output-area">
+        <div class="card-title">Output</div>
+        <div id="thumbOutput">
+          <div class="empty-state">
+            <div class="empty-icon">🖼</div>
+            <div>Thumbnail appears here</div>
+          </div>
+        </div>
+      </div>
+
+    </div>
   </div>
 </div>
 
@@ -1480,6 +1671,149 @@ function updateStats() {
   document.getElementById('statAnimations').textContent = state.stats.animations;
   document.getElementById('statSpend').textContent = '$' + state.stats.spend.toFixed(4);
   document.getElementById('sessionCost').textContent = '$' + state.stats.spend.toFixed(4);
+}
+
+// ─── THUMBNAIL TAB ───────────────────────────────────────
+const MRTIE_PROMPT = `A unique stylized sloth character named MR.TIE, upright bipedal posture, smooth minimal geometric designer toy aesthetic, matte charcoal dark grey body, large smooth rounded dome head with slightly elongated side profile, small flat wide nose centered on face, two small circular pure black eyes with calm focused expression, closed neutral mouth present on face but completely expressionless — no smile no frown, no visible ears, no fur texture, broad rounded shoulders, compact symmetrical proportions, short thick arms, stubby legs, flat wide feet, four short rounded fingers per hand no claws visible, three rounded toes per foot no claws visible, wearing a clean tailored pure black two-button suit, crisp white dress shirt with collar and cuffs visible, perfectly centered deep wine red tie hex #6B0F1A no wrinkles, clean minimal gold watch on left wrist with no numbers or brand markings, non-cartoon, non-realistic, professional and elegant, symmetrical, ultra clean, smooth matte surfaces, soft ambient lighting, high detail, 4K, consistent design`;
+
+const POSE_DESCRIPTIONS = {
+  default:  'standing upright facing camera directly, hands clasped in front, calm authoritative pose',
+  side:     'standing upright in side profile facing left, arms slightly crossed, contemplative stance',
+  thinking: 'one hand raised to chin area, head tilted very slightly, eyes looking forward, thinking pose',
+  pointing: 'one arm fully extended outward, single finger pointing directly toward viewer or off-frame',
+  seated:   'seated upright in a chair, hands resting on desk, posture perfectly straight, never slouched',
+  back:     'full back view of suit visible, standing and looking ahead at something in the distance'
+};
+
+const TRIGGER_ENERGY = {
+  fear:     'tense ominous energy, something is wrong, the viewer senses danger before reading a word',
+  self:     'confrontational mirror-like energy, the viewer recognizes themselves in this scene',
+  question: 'mysterious open-ended energy, something is missing or hidden, an unanswered question hangs in the air',
+  value:    'authoritative expansive energy, enormous information is about to be revealed',
+  voyeur:   'exclusive insider energy, private information is being exposed, forbidden knowledge'
+};
+
+let thumbTrigger = null;
+let thumbPose = null;
+
+function selectTrigger(el) {
+  document.querySelectorAll('.trigger-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  thumbTrigger = el.dataset.trigger;
+}
+
+function selectPose(el) {
+  document.querySelectorAll('.pose-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  thumbPose = el.dataset.pose;
+}
+
+function updateThumbWordCount() {
+  const text = document.getElementById('thumbText').value.trim();
+  const words = text ? text.split(/\s+/).length : 0;
+  document.getElementById('thumbWordCount').textContent = words;
+  const warn = document.getElementById('thumbTextWarning');
+  warn.style.display = words > 5 ? 'block' : 'none';
+  document.getElementById('thumbWordCount').style.color = words > 5 ? '#c0392b' : 'var(--gold)';
+}
+
+document.addEventListener('change', e => {
+  if (e.target.classList.contains('thumb-check')) {
+    const checks = document.querySelectorAll('.thumb-check');
+    const passed = [...checks].filter(c => c.checked).length;
+    const score = document.getElementById('checklistScore');
+    if (!score) return;
+    if (passed === 10) {
+      score.style.color = '#2ecc71';
+      score.textContent = '✓ All 10 checks passed — ready to publish';
+    } else {
+      score.style.color = 'var(--grey-mid)';
+      score.textContent = passed + '/10 checks passed';
+    }
+  }
+});
+
+async function generateThumbnail() {
+  if (!state.apiKey) { notify('Enter your API key in Settings first', 'error'); return; }
+  if (!thumbTrigger) { notify('Select a trigger first (Step 1)', 'error'); return; }
+  if (!thumbPose) { notify('Select MR.TIE\'s pose first (Step 2)', 'error'); return; }
+
+  const thumbText = document.getElementById('thumbText').value.trim();
+  const scene = document.getElementById('thumbScene').value.trim();
+  const wordCount = thumbText ? thumbText.split(/\s+/).length : 0;
+
+  if (wordCount > 5) { notify('Thumbnail text exceeds 5 words — fix before generating', 'error'); return; }
+
+  const btn = document.getElementById('thumbGenBtn');
+  const progressWrap = document.getElementById('thumbProgress');
+  const progressFill = document.getElementById('thumbProgressFill');
+  const progressText = document.getElementById('thumbProgressText');
+
+  btn.disabled = true;
+  progressWrap.classList.add('visible');
+  progressFill.style.width = '5%';
+  progressText.textContent = 'Building prompt...';
+
+  const poseDesc = POSE_DESCRIPTIONS[thumbPose];
+  const triggerEnergy = TRIGGER_ENERGY[thumbTrigger];
+
+  let prompt = `YouTube thumbnail image, pure solid black background #000000 only, no gradients, no textures, no photography, exactly three visual elements. `;
+  prompt += `${MRTIE_PROMPT}, ${poseDesc}. `;
+  prompt += `Overall mood: ${triggerEnergy}. `;
+  if (scene) prompt += `Scene: ${scene}. `;
+  if (thumbText) prompt += `Large bold off-white text "#F5F5F5" reading "${thumbText.toUpperCase()}" in thick geometric sans-serif, readable at small sizes, maximum contrast. `;
+  prompt += `One wine red #6B0F1A glowing accent element — outline, glow, or graphic detail. No other accent colors except wine red and the gold watch. No human faces. No clutter. Cinematic premium feel. Ultra clean 4K. Three elements only: MR.TIE character, text overlay, one wine red accent.`;
+
+  const negPrompt = `white background, grey background, gradient, texture, stock photo, human faces, clutter, busy composition, blue, purple, green, yellow, neon, cartoon, chibi, smiling, scared, blur, watermark, low quality, multiple accent colors, background elements`;
+
+  try {
+    progressFill.style.width = '20%';
+    progressText.textContent = 'Sending to Flux Pro...';
+
+    const output = await replicateRun(
+      IMG_MODELS['flux-pro'],
+      { prompt, negative_prompt: negPrompt, width: 1280, height: 720, num_outputs: 1, output_format: 'webp', output_quality: 95 },
+      progressWrap, progressFill, progressText
+    );
+
+    progressFill.style.width = '100%';
+    progressText.textContent = 'Done!';
+
+    const urls = Array.isArray(output) ? output : [output];
+    renderThumbOutput(urls[0]);
+    addToHistory(urls);
+
+    state.stats.images++;
+    state.stats.spend += 0.055;
+    updateStats();
+    setStatus('Ready', 'active');
+    notify('Thumbnail generated');
+
+  } catch (err) {
+    console.error(err);
+    notify(err.message, 'error');
+    setStatus('Error', 'error');
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => { progressWrap.classList.remove('visible'); progressFill.style.width = '0%'; }, 1500);
+  }
+}
+
+function renderThumbOutput(url) {
+  const container = document.getElementById('thumbOutput');
+  container.innerHTML = `
+    <div style="position:relative;border-radius:5px;overflow:hidden;border:1px solid var(--border);margin-bottom:10px;">
+      <img src="${url}" style="width:100%;display:block;" alt="Thumbnail">
+      <div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(0,0,0,0.85));padding:20px 8px 8px;display:flex;gap:6px;">
+        <button class="btn btn-primary" style="font-size:10px;padding:5px 10px" onclick="downloadImage('${url}', 'wealthsloth-thumbnail-${Date.now()}.webp')">⬇ Save</button>
+        <button class="btn btn-ghost" style="font-size:10px;padding:5px 10px" onclick="sendToAnimate('${url}')">▶ Animate</button>
+      </div>
+    </div>
+    <div style="background:var(--grey-dark);border:1px solid var(--border);border-radius:4px;padding:10px 12px;">
+      <div style="font-size:9px;font-weight:600;color:var(--wine);letter-spacing:0.1em;margin-bottom:6px;">120PX READABILITY CHECK</div>
+      <img src="${url}" style="width:120px;display:block;border-radius:2px;" alt="120px preview">
+    </div>
+  `;
 }
 </script>
 </body>
