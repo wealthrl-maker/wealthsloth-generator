@@ -1364,7 +1364,7 @@ function resetFrameZone(id, icon) {
 // Routes through corsproxy.io to bypass browser CORS restrictions when hosted.
 // Your API key is sent directly to Replicate over HTTPS — corsproxy only forwards
 // the request and never stores your key.
-const CORS_PROXY = 'https://corsproxy.io/?url=';
+const CORS_PROXY = 'https://replicate-proxy.wealthrol9.workers.dev/?url=';
 
 async function replicateRun(model, input, progressEl, progressFill, progressText) {
   const key = state.apiKey;
