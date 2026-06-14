@@ -1361,37 +1361,44 @@ function resetFrameZone(id, icon) {
 }
 
 // ─── REPLICATE API CALL ──────────────────────────────────
+// Routes through corsproxy.io to bypass browser CORS restrictions when hosted.
+// Your API key is sent directly to Replicate over HTTPS — corsproxy only forwards
+// the request and never stores your key.
+const CORS_PROXY = 'https://corsproxy.io/?url=';
+
 async function replicateRun(model, input, progressEl, progressFill, progressText) {
   const key = state.apiKey;
   setStatus('Generating...', null);
 
-  // Start prediction
-  const startRes = await fetch('https://api.replicate.com/v1/models/' + model + '/predictions', {
+  const apiBase = 'https://api.replicate.com/v1/models/' + model + '/predictions';
+
+  // Start prediction via proxy
+  const startRes = await fetch(CORS_PROXY + encodeURIComponent(apiBase), {
     method: 'POST',
     headers: {
       'Authorization': 'Bearer ' + key,
-      'Content-Type': 'application/json',
-      'Prefer': 'wait'
+      'Content-Type': 'application/json'
     },
     body: JSON.stringify({ input })
   });
 
   if (!startRes.ok) {
     const err = await startRes.json().catch(() => ({}));
-    throw new Error(err.detail || 'API error ' + startRes.status);
+    throw new Error(err.detail || err.error || 'API error ' + startRes.status);
   }
 
   let prediction = await startRes.json();
   let pct = 10;
 
-  // Poll
+  // Poll until complete
   while (!['succeeded', 'failed', 'canceled'].includes(prediction.status)) {
-    await sleep(2000);
-    pct = Math.min(pct + 10, 90);
+    await sleep(2500);
+    pct = Math.min(pct + 8, 90);
     if (progressFill) progressFill.style.width = pct + '%';
     if (progressText) progressText.textContent = 'Processing... ' + pct + '%';
 
-    const pollRes = await fetch('https://api.replicate.com/v1/predictions/' + prediction.id, {
+    const pollBase = 'https://api.replicate.com/v1/predictions/' + prediction.id;
+    const pollRes = await fetch(CORS_PROXY + encodeURIComponent(pollBase), {
       headers: { 'Authorization': 'Bearer ' + key }
     });
     prediction = await pollRes.json();
