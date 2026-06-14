@@ -1,0 +1,1486 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WealthSloth Generator</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500;600&display=swap');
+
+  :root {
+    --black: #000000;
+    --wine: #6B0F1A;
+    --wine-dim: #4a0a12;
+    --wine-bright: #8b1422;
+    --wine-glow: rgba(107, 15, 26, 0.4);
+    --charcoal: #2C2C2C;
+    --charcoal-light: #3D3D3D;
+    --gold: #C9A84C;
+    --off-white: #F5F5F5;
+    --grey-mid: #888;
+    --grey-dim: #555;
+    --grey-dark: #222;
+    --border: #2a2a2a;
+    --border-wine: rgba(107,15,26,0.5);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: var(--black);
+    color: var(--off-white);
+    font-family: 'Inter', sans-serif;
+    font-size: 13px;
+    min-height: 100vh;
+  }
+
+  /* ─── HEADER ─────────────────────────────────────────── */
+  header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    background: #050505;
+  }
+  .logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 22px;
+    letter-spacing: 2px;
+    color: var(--off-white);
+  }
+  .logo span { color: var(--wine); }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .budget-pill {
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 12px;
+    font-size: 11px;
+    color: var(--grey-mid);
+  }
+  .budget-pill b { color: var(--gold); }
+
+  /* ─── TABS ───────────────────────────────────────────── */
+  .tab-bar {
+    display: flex;
+    border-bottom: 1px solid var(--border);
+    background: #080808;
+    padding: 0 24px;
+  }
+  .tab-btn {
+    background: none;
+    border: none;
+    color: var(--grey-dim);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 12px 16px;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .tab-btn:hover { color: var(--off-white); }
+  .tab-btn.active {
+    color: var(--off-white);
+    border-bottom-color: var(--wine);
+  }
+
+  /* ─── LAYOUT ─────────────────────────────────────────── */
+  .tab-panel { display: none; padding: 24px; }
+  .tab-panel.active { display: block; }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 340px;
+    gap: 20px;
+    max-width: 1100px;
+  }
+  .full-col { max-width: 1100px; }
+
+  /* ─── CARDS / SECTIONS ───────────────────────────────── */
+  .card {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 16px;
+  }
+  .card-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 13px;
+    letter-spacing: 1.5px;
+    color: var(--wine);
+    margin-bottom: 14px;
+  }
+
+  /* ─── FORM ELEMENTS ──────────────────────────────────── */
+  label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--grey-mid);
+    margin-bottom: 5px;
+  }
+  textarea, input[type="text"], input[type="password"], select {
+    width: 100%;
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--off-white);
+    font-family: 'Inter', sans-serif;
+    font-size: 12px;
+    padding: 8px 10px;
+    transition: border-color 0.15s;
+    outline: none;
+    resize: vertical;
+  }
+  textarea:focus, input:focus, select:focus {
+    border-color: var(--wine);
+  }
+  textarea { min-height: 80px; }
+  select option { background: #111; }
+
+  .field { margin-bottom: 14px; }
+  .field:last-child { margin-bottom: 0; }
+
+  .row { display: flex; gap: 10px; }
+  .row .field { flex: 1; }
+
+  /* ─── BUTTONS ────────────────────────────────────────── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.05em;
+    padding: 9px 18px;
+    transition: all 0.15s;
+  }
+  .btn-primary {
+    background: var(--wine);
+    color: var(--off-white);
+  }
+  .btn-primary:hover { background: var(--wine-bright); }
+  .btn-primary:disabled { background: var(--wine-dim); opacity: 0.5; cursor: not-allowed; }
+
+  .btn-secondary {
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    color: var(--grey-mid);
+  }
+  .btn-secondary:hover { color: var(--off-white); border-color: var(--grey-dim); }
+
+  .btn-ghost {
+    background: none;
+    border: 1px solid var(--border-wine);
+    color: var(--wine);
+    font-size: 11px;
+    padding: 5px 10px;
+  }
+  .btn-ghost:hover { background: var(--wine-glow); }
+
+  .btn-full { width: 100%; }
+
+  /* ─── MODEL SELECTOR ─────────────────────────────────── */
+  .model-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .model-opt {
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+    text-align: left;
+  }
+  .model-opt:hover { border-color: var(--grey-dim); }
+  .model-opt.selected {
+    border-color: var(--wine);
+    background: rgba(107,15,26,0.15);
+  }
+  .model-name {
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--off-white);
+    display: block;
+  }
+  .model-meta {
+    font-size: 9px;
+    color: var(--grey-mid);
+    margin-top: 2px;
+  }
+
+  /* ─── REFERENCE IMAGES ───────────────────────────────── */
+  .ref-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 6px;
+    margin-bottom: 14px;
+  }
+  .ref-slot {
+    aspect-ratio: 1;
+    background: var(--grey-dark);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    position: relative;
+    overflow: hidden;
+    font-size: 10px;
+    color: var(--grey-dim);
+    text-align: center;
+    gap: 4px;
+  }
+  .ref-slot:hover { border-color: var(--wine); color: var(--wine); }
+  .ref-slot img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+    border-radius: 3px;
+  }
+  .ref-slot .remove-ref {
+    position: absolute;
+    top: 2px; right: 2px;
+    background: var(--wine);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 16px; height: 16px;
+    font-size: 9px;
+    cursor: pointer;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+  }
+  .ref-slot:hover .remove-ref { display: flex; }
+
+  /* ─── ASPECT RATIO ───────────────────────────────────── */
+  .aspect-grid {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .aspect-btn {
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    color: var(--grey-mid);
+    font-size: 10px;
+    font-weight: 600;
+    padding: 5px 10px;
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .aspect-btn:hover { color: var(--off-white); }
+  .aspect-btn.selected { border-color: var(--wine); color: var(--off-white); background: rgba(107,15,26,0.15); }
+
+  /* ─── COST ESTIMATE ──────────────────────────────────── */
+  .cost-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 8px 12px;
+    margin-bottom: 14px;
+    font-size: 11px;
+  }
+  .cost-label { color: var(--grey-mid); }
+  .cost-value { color: var(--gold); font-weight: 600; }
+
+  /* ─── GENERATE BUTTON ────────────────────────────────── */
+  .generate-btn {
+    width: 100%;
+    padding: 12px;
+    font-size: 13px;
+    letter-spacing: 0.1em;
+    background: var(--wine);
+    color: var(--off-white);
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Bebas Neue', sans-serif;
+    transition: background 0.15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .generate-btn:hover { background: var(--wine-bright); }
+  .generate-btn:disabled { background: var(--wine-dim); cursor: not-allowed; }
+
+  /* ─── PROGRESS BAR ───────────────────────────────────── */
+  .progress-wrap {
+    display: none;
+    margin-top: 10px;
+  }
+  .progress-wrap.visible { display: block; }
+  .progress-track {
+    background: var(--grey-dark);
+    border-radius: 2px;
+    height: 3px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--wine);
+    width: 0%;
+    transition: width 0.3s;
+    animation: progress-pulse 1.5s ease-in-out infinite;
+  }
+  @keyframes progress-pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.6; }
+  }
+  .progress-text {
+    font-size: 10px;
+    color: var(--grey-mid);
+    margin-top: 6px;
+    text-align: center;
+  }
+
+  /* ─── OUTPUT GRID ────────────────────────────────────── */
+  .output-area {
+    min-height: 200px;
+  }
+  .output-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+  }
+  .output-img-wrap {
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+    group: true;
+  }
+  .output-img-wrap img {
+    width: 100%;
+    display: block;
+  }
+  .output-img-actions {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    padding: 20px 8px 8px;
+    display: flex;
+    gap: 6px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .output-img-wrap:hover .output-img-actions { opacity: 1; }
+
+  /* ─── EMPTY STATE ────────────────────────────────────── */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 200px;
+    color: var(--grey-dim);
+    font-size: 11px;
+    gap: 8px;
+    border: 1px dashed var(--border);
+    border-radius: 6px;
+  }
+  .empty-icon { font-size: 28px; opacity: 0.3; }
+
+  /* ─── VIDEO OUTPUT ───────────────────────────────────── */
+  .video-output {
+    width: 100%;
+    border-radius: 5px;
+    background: #000;
+  }
+
+  /* ─── FRAME UPLOAD ───────────────────────────────────── */
+  .frame-upload {
+    aspect-ratio: 16/9;
+    background: var(--grey-dark);
+    border: 1px dashed var(--border);
+    border-radius: 4px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: border-color 0.15s;
+    position: relative;
+    overflow: hidden;
+    color: var(--grey-dim);
+    font-size: 11px;
+    gap: 6px;
+    text-align: center;
+  }
+  .frame-upload:hover { border-color: var(--wine); color: var(--wine); }
+  .frame-upload img {
+    position: absolute; inset: 0;
+    width: 100%; height: 100%;
+    object-fit: cover;
+  }
+  .frame-upload .frame-remove {
+    position: absolute;
+    top: 4px; right: 4px;
+    background: var(--wine);
+    color: white;
+    border: none;
+    border-radius: 50%;
+    width: 20px; height: 20px;
+    font-size: 10px;
+    cursor: pointer;
+    align-items: center;
+    justify-content: center;
+    display: none;
+    z-index: 2;
+  }
+  .frame-upload:hover .frame-remove { display: flex; }
+
+  /* ─── HISTORY GRID ───────────────────────────────────── */
+  .history-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 8px;
+  }
+  .history-item {
+    position: relative;
+    border-radius: 5px;
+    overflow: hidden;
+    background: var(--grey-dark);
+    border: 1px solid var(--border);
+  }
+  .history-item img { width: 100%; display: block; }
+  .history-item-actions {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    background: linear-gradient(transparent, rgba(0,0,0,0.85));
+    padding: 16px 6px 6px;
+    display: flex;
+    gap: 4px;
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .history-item:hover .history-item-actions { opacity: 1; }
+
+  /* ─── SETTINGS ───────────────────────────────────────── */
+  .settings-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    max-width: 700px;
+  }
+  .stat-box {
+    background: #0a0a0a;
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    padding: 14px;
+  }
+  .stat-label { font-size: 10px; color: var(--grey-mid); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 4px; }
+  .stat-value { font-family: 'Bebas Neue', sans-serif; font-size: 28px; color: var(--off-white); }
+  .stat-sub { font-size: 10px; color: var(--gold); margin-top: 2px; }
+
+  /* ─── MODAL (API key) ────────────────────────────────── */
+  .modal-backdrop {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.9);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+  }
+  .modal-backdrop.hidden { display: none; }
+  .modal {
+    background: #0e0e0e;
+    border: 1px solid var(--wine);
+    border-radius: 8px;
+    padding: 28px;
+    width: 380px;
+    box-shadow: 0 0 40px var(--wine-glow);
+  }
+  .modal-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 20px;
+    letter-spacing: 2px;
+    color: var(--off-white);
+    margin-bottom: 6px;
+  }
+  .modal-sub { font-size: 11px; color: var(--grey-mid); margin-bottom: 20px; line-height: 1.6; }
+  .modal-sub a { color: var(--wine); text-decoration: none; }
+  .modal-sub a:hover { text-decoration: underline; }
+
+  /* ─── NOTIFICATION ───────────────────────────────────── */
+  .notif {
+    position: fixed;
+    bottom: 20px; right: 20px;
+    background: #111;
+    border: 1px solid var(--wine);
+    border-radius: 5px;
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--off-white);
+    z-index: 2000;
+    transform: translateY(60px);
+    opacity: 0;
+    transition: all 0.2s;
+    max-width: 300px;
+  }
+  .notif.show { transform: translateY(0); opacity: 1; }
+  .notif.error { border-color: #c0392b; }
+  .notif.success { border-color: var(--wine); }
+
+  /* ─── SLIDER ─────────────────────────────────────────── */
+  input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--grey-dark);
+    border-radius: 2px;
+    outline: none;
+  }
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: var(--wine);
+    cursor: pointer;
+  }
+
+  /* ─── DIVIDER ────────────────────────────────────────── */
+  .divider {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 16px 0;
+  }
+
+  /* ─── ANIMATE LAYOUT ─────────────────────────────────── */
+  .anim-grid {
+    display: grid;
+    grid-template-columns: 1fr 320px;
+    gap: 20px;
+    max-width: 1100px;
+  }
+
+  /* ─── BADGE ──────────────────────────────────────────── */
+  .badge {
+    display: inline-block;
+    background: var(--wine-dim);
+    color: var(--off-white);
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    padding: 2px 6px;
+    border-radius: 3px;
+    margin-left: 6px;
+  }
+  .badge.gold { background: rgba(201, 168, 76, 0.2); color: var(--gold); }
+
+  /* ─── SCROLLBAR ──────────────────────────────────────── */
+  ::-webkit-scrollbar { width: 6px; }
+  ::-webkit-scrollbar-track { background: #0a0a0a; }
+  ::-webkit-scrollbar-thumb { background: var(--grey-dark); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--grey-dim); }
+
+  /* ─── RESPONSIVE ─────────────────────────────────────── */
+  @media (max-width: 800px) {
+    .two-col, .anim-grid { grid-template-columns: 1fr; }
+    .settings-grid { grid-template-columns: 1fr; }
+  }
+
+  /* ─── STATUS INDICATOR ───────────────────────────────── */
+  .status-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--grey-dim);
+    display: inline-block;
+    margin-right: 5px;
+  }
+  .status-dot.active { background: #2ecc71; box-shadow: 0 0 6px rgba(46,204,113,0.5); }
+  .status-dot.error { background: #c0392b; }
+</style>
+</head>
+<body>
+
+<!-- API KEY MODAL -->
+<div class="modal-backdrop" id="keyModal">
+  <div class="modal">
+    <div class="modal-title">WEALTHSLOTH GENERATOR</div>
+    <p class="modal-sub">Enter your Replicate API key to get started. It's stored only in your browser — never sent anywhere except Replicate's API.<br><br>Get a key at <a href="https://replicate.com/account/api-tokens" target="_blank">replicate.com/account/api-tokens</a></p>
+    <div class="field">
+      <label>Replicate API Key</label>
+      <input type="password" id="keyInput" placeholder="r8_..." autocomplete="off">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveKey()" style="margin-top:10px">SAVE & CONTINUE</button>
+  </div>
+</div>
+
+<!-- NOTIFICATION -->
+<div class="notif" id="notif"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="logo">WEALTH<span>SLOTH</span> <span style="color:var(--grey-dim);font-size:14px;letter-spacing:1px;">GENERATOR</span></div>
+  <div class="header-right">
+    <div class="budget-pill">Session: <b id="sessionCost">$0.0000</b></div>
+    <div class="budget-pill"><span class="status-dot" id="statusDot"></span><span id="statusText">Ready</span></div>
+    <button class="btn btn-secondary" onclick="showTab('settings')" style="font-size:11px;padding:5px 12px;">⚙ Settings</button>
+  </div>
+</header>
+
+<!-- TABS -->
+<div class="tab-bar">
+  <button class="tab-btn active" onclick="showTab('images')" id="tab-images">Images</button>
+  <button class="tab-btn" onclick="showTab('animate')" id="tab-animate">Animate</button>
+  <button class="tab-btn" onclick="showTab('history')" id="tab-history">History <span id="histCount" style="color:var(--grey-dim);"></span></button>
+  <button class="tab-btn" onclick="showTab('settings')" id="tab-settings">Settings</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- IMAGES TAB -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-panel active" id="panel-images">
+  <div class="two-col">
+
+    <!-- LEFT: controls -->
+    <div>
+
+      <!-- Model -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Model</div>
+        <div class="model-grid" id="imgModelGrid">
+          <div class="model-opt selected" data-model="flux-schnell" onclick="selectImgModel(this)">
+            <span class="model-name">Flux Schnell</span>
+            <span class="model-meta">$0.003/img · Fastest</span>
+          </div>
+          <div class="model-opt" data-model="flux-dev" onclick="selectImgModel(this)">
+            <span class="model-name">Flux Dev</span>
+            <span class="model-meta">$0.025/img · Better quality</span>
+          </div>
+          <div class="model-opt" data-model="flux-pro" onclick="selectImgModel(this)">
+            <span class="model-name">Flux Pro</span>
+            <span class="model-meta">$0.055/img · Best quality</span>
+          </div>
+          <div class="model-opt" data-model="imagen-3" onclick="selectImgModel(this)">
+            <span class="model-name">Imagen 3 <span class="badge gold">Google</span></span>
+            <span class="model-meta">$0.040/img · Photorealistic</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Prompt</div>
+        <div class="field">
+          <label>Positive Prompt</label>
+          <textarea id="imgPrompt" rows="4" placeholder="Describe what you want to generate..."></textarea>
+        </div>
+        <div class="field">
+          <label>Negative Prompt</label>
+          <textarea id="imgNegPrompt" rows="2" placeholder="cartoon, blur, text, watermark, low quality..."></textarea>
+        </div>
+      </div>
+
+      <!-- MR.TIE Reference Images -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">MR.TIE Reference Images</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Upload reference images to maintain character consistency across generations.</p>
+        <div class="ref-grid" id="refGrid">
+          <!-- 4 slots rendered by JS -->
+        </div>
+        <input type="file" id="refFileInput" accept="image/*" style="display:none" onchange="handleRefUpload(event)">
+      </div>
+
+      <!-- Aspect Ratio -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Aspect Ratio</div>
+        <div class="aspect-grid" id="aspectGrid">
+          <button class="aspect-btn" data-ar="1:1" onclick="selectAspect(this)">1:1 Square</button>
+          <button class="aspect-btn selected" data-ar="16:9" onclick="selectAspect(this)">16:9 Landscape</button>
+          <button class="aspect-btn" data-ar="9:16" onclick="selectAspect(this)">9:16 Portrait</button>
+          <button class="aspect-btn" data-ar="4:3" onclick="selectAspect(this)">4:3</button>
+          <button class="aspect-btn" data-ar="3:2" onclick="selectAspect(this)">3:2</button>
+          <button class="aspect-btn" data-ar="21:9" onclick="selectAspect(this)">21:9 Ultra</button>
+        </div>
+      </div>
+
+      <!-- Count -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Count</div>
+        <div class="row">
+          <div class="field">
+            <label>Images to generate: <span id="imgCountLabel">1</span></label>
+            <input type="range" min="1" max="4" value="1" id="imgCount" oninput="updateImgCount(this.value)">
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: output -->
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="cost-bar">
+          <span class="cost-label">Estimated cost</span>
+          <span class="cost-value" id="imgCostEstimate">$0.0030</span>
+        </div>
+        <button class="generate-btn" id="imgGenBtn" onclick="generateImages()">GENERATE</button>
+        <div class="progress-wrap" id="imgProgress">
+          <div class="progress-track"><div class="progress-fill" id="imgProgressFill"></div></div>
+          <div class="progress-text" id="imgProgressText">Initializing...</div>
+        </div>
+      </div>
+
+      <div class="card output-area">
+        <div class="card-title">Output</div>
+        <div id="imgOutput">
+          <div class="empty-state">
+            <div class="empty-icon">🎨</div>
+            <div>Generate images to see them here</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- ANIMATE TAB -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-animate">
+  <div class="anim-grid">
+
+    <!-- LEFT: controls -->
+    <div>
+
+      <!-- Model -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Animation Model</div>
+        <div class="model-grid" id="animModelGrid">
+          <div class="model-opt selected" data-model="kling-3" onclick="selectAnimModel(this)">
+            <span class="model-name">Kling 3.0 <span class="badge">Primary</span></span>
+            <span class="model-meta">$0.028/s · Best quality</span>
+          </div>
+          <div class="model-opt" data-model="haiper-2" onclick="selectAnimModel(this)">
+            <span class="model-name">Haiper 2 <span class="badge">Secondary</span></span>
+            <span class="model-meta">$0.018/s · Faster</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompts -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Prompt</div>
+        <div class="field">
+          <label>Animation Prompt</label>
+          <textarea id="animPrompt" rows="3" placeholder="Describe the motion or action..."></textarea>
+        </div>
+        <div class="field">
+          <label>Negative Prompt</label>
+          <textarea id="animNegPrompt" rows="2" placeholder="blur, distortion, morphing face..."></textarea>
+        </div>
+      </div>
+
+      <!-- Frames -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Frames</div>
+        <div class="row">
+          <div class="field">
+            <label>Start Frame</label>
+            <div class="frame-upload" id="startFrameZone" onclick="triggerFrameUpload('start')">
+              <div style="font-size:20px;opacity:0.4">▶</div>
+              <div>Click to upload</div>
+              <button class="frame-remove" id="startFrameRemove" onclick.stop="removeFrame('start', event)">✕</button>
+            </div>
+            <input type="file" id="startFrameInput" accept="image/*" style="display:none" onchange="handleFrameUpload('start', event)">
+          </div>
+          <div class="field">
+            <label>End Frame <span style="color:var(--grey-dim);font-size:9px;">(optional)</span></label>
+            <div class="frame-upload" id="endFrameZone" onclick="triggerFrameUpload('end')">
+              <div style="font-size:20px;opacity:0.4">⏹</div>
+              <div>Click to upload</div>
+              <button class="frame-remove" id="endFrameRemove" onclick.stop="removeFrame('end', event)">✕</button>
+            </div>
+            <input type="file" id="endFrameInput" accept="image/*" style="display:none" onchange="handleFrameUpload('end', event)">
+          </div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="card" style="margin-bottom:14px;">
+        <div class="card-title">Animation Settings</div>
+        <div class="row">
+          <div class="field">
+            <label>Duration</label>
+            <select id="animDuration">
+              <option value="5">5 seconds</option>
+              <option value="10" selected>10 seconds</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>Resolution</label>
+            <select id="animResolution">
+              <option value="720p">720p</option>
+              <option value="1080p" selected>1080p</option>
+            </select>
+          </div>
+        </div>
+        <div class="field">
+          <label>Motion Intensity: <span id="motionLabel">5</span></label>
+          <input type="range" min="1" max="10" value="5" id="motionIntensity" oninput="document.getElementById('motionLabel').textContent = this.value">
+        </div>
+        <div class="field">
+          <label>Aspect Ratio</label>
+          <div class="aspect-grid" id="animAspectGrid">
+            <button class="aspect-btn selected" data-ar="16:9" onclick="selectAnimAspect(this)">16:9</button>
+            <button class="aspect-btn" data-ar="9:16" onclick="selectAnimAspect(this)">9:16</button>
+            <button class="aspect-btn" data-ar="1:1" onclick="selectAnimAspect(this)">1:1</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- RIGHT: output -->
+    <div>
+      <div class="card" style="margin-bottom:14px;">
+        <div class="cost-bar">
+          <span class="cost-label">Estimated cost</span>
+          <span class="cost-value" id="animCostEstimate">$0.28</span>
+        </div>
+        <button class="generate-btn" id="animGenBtn" onclick="generateAnimation()">ANIMATE</button>
+        <div class="progress-wrap" id="animProgress">
+          <div class="progress-track"><div class="progress-fill" id="animProgressFill"></div></div>
+          <div class="progress-text" id="animProgressText">Initializing...</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Output</div>
+        <div id="animOutput">
+          <div class="empty-state">
+            <div class="empty-icon">🎬</div>
+            <div>Animations appear here</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- HISTORY TAB -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-history">
+  <div class="full-col">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div style="font-family:'Bebas Neue';font-size:16px;letter-spacing:1.5px;color:var(--wine);">SESSION HISTORY</div>
+      <button class="btn btn-secondary" onclick="clearHistory()">Clear Session</button>
+    </div>
+    <div id="historyOutput">
+      <div class="empty-state">
+        <div class="empty-icon">🗂</div>
+        <div>Images you generate this session appear here</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- SETTINGS TAB -->
+<!-- ══════════════════════════════════════════════════════ -->
+<div class="tab-panel" id="panel-settings">
+  <div style="max-width:700px;">
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">API Key</div>
+      <div class="field">
+        <label>Replicate API Key</label>
+        <div style="display:flex;gap:8px;">
+          <input type="password" id="settingsKey" placeholder="r8_...">
+          <button class="btn btn-primary" onclick="updateKey()">Save</button>
+        </div>
+      </div>
+      <div style="font-size:10px;color:var(--grey-dim);margin-top:8px;">
+        Stored in browser localStorage only. <a href="https://replicate.com/account/api-tokens" target="_blank" style="color:var(--wine);">Get or rotate key</a>
+      </div>
+    </div>
+
+    <div class="card" style="margin-bottom:16px;">
+      <div class="card-title">Session Stats</div>
+      <div class="settings-grid">
+        <div class="stat-box">
+          <div class="stat-label">Images Generated</div>
+          <div class="stat-value" id="statImages">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Animations Generated</div>
+          <div class="stat-value" id="statAnimations">0</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Session Spend</div>
+          <div class="stat-value" id="statSpend">$0.00</div>
+          <div class="stat-sub">This session only</div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Replicate Billing</div>
+          <div class="stat-value" style="font-size:18px;padding-top:6px;">
+            <a href="https://replicate.com/account/billing" target="_blank" style="color:var(--wine);text-decoration:none;font-family:'Inter';font-size:12px;font-weight:600;">Open Billing ↗</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">About</div>
+      <p style="font-size:11px;color:var(--grey-mid);line-height:1.7;">
+        WealthSloth Generator — Personal AI production tool for the WealthSloth YouTube channel.<br>
+        Images via Replicate API (Flux Schnell / Dev / Pro / Imagen 3).<br>
+        Animations via Kling 3.0 and Haiper 2.<br>
+        All API calls go directly from your browser to Replicate. No data is stored on any server.
+      </p>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════════════════ -->
+<!-- JAVASCRIPT -->
+<!-- ══════════════════════════════════════════════════════ -->
+<script>
+// ─── STATE ─────────────────────────────────────────────
+const state = {
+  apiKey: null,
+  selectedImgModel: 'flux-schnell',
+  selectedAnimModel: 'kling-3',
+  selectedAspect: '16:9',
+  selectedAnimAspect: '16:9',
+  imgCount: 1,
+  refImages: [null, null, null, null],
+  startFrame: null,
+  endFrame: null,
+  history: [],
+  stats: { images: 0, animations: 0, spend: 0 }
+};
+
+const IMG_COSTS = {
+  'flux-schnell': 0.003,
+  'flux-dev': 0.025,
+  'flux-pro': 0.055,
+  'imagen-3': 0.040
+};
+const ANIM_COST_PER_SEC = { 'kling-3': 0.028, 'haiper-2': 0.018 };
+
+// ─── MODEL IDs ──────────────────────────────────────────
+const IMG_MODELS = {
+  'flux-schnell': 'black-forest-labs/flux-schnell',
+  'flux-dev':     'black-forest-labs/flux-dev',
+  'flux-pro':     'black-forest-labs/flux-1.1-pro',
+  'imagen-3':     'google-deepmind/imagen-3'
+};
+const ANIM_MODELS = {
+  'kling-3':   'klingai/kling-video-v2-master',
+  'haiper-2':  'haiper-ai/haiper-video-2'
+};
+
+// ─── INIT ───────────────────────────────────────────────
+window.addEventListener('load', () => {
+  const key = localStorage.getItem('ws_replicate_key');
+  if (key) {
+    state.apiKey = key;
+    document.getElementById('keyModal').classList.add('hidden');
+    document.getElementById('settingsKey').value = key;
+    setStatus('Ready', 'active');
+  } else {
+    document.getElementById('keyModal').classList.remove('hidden');
+  }
+  renderRefSlots();
+  updateImgCost();
+  updateAnimCost();
+});
+
+// ─── KEY MANAGEMENT ─────────────────────────────────────
+function saveKey() {
+  const val = document.getElementById('keyInput').value.trim();
+  if (!val.startsWith('r8_')) { notify('Key must start with r8_', 'error'); return; }
+  localStorage.setItem('ws_replicate_key', val);
+  state.apiKey = val;
+  document.getElementById('keyModal').classList.add('hidden');
+  document.getElementById('settingsKey').value = val;
+  setStatus('Ready', 'active');
+  notify('API key saved');
+}
+function updateKey() {
+  const val = document.getElementById('settingsKey').value.trim();
+  if (!val.startsWith('r8_')) { notify('Key must start with r8_', 'error'); return; }
+  localStorage.setItem('ws_replicate_key', val);
+  state.apiKey = val;
+  notify('API key updated');
+}
+
+// ─── TABS ───────────────────────────────────────────────
+function showTab(name) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + name).classList.add('active');
+  document.getElementById('tab-' + name).classList.add('active');
+}
+
+// ─── MODEL SELECTION ────────────────────────────────────
+function selectImgModel(el) {
+  document.querySelectorAll('#imgModelGrid .model-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedImgModel = el.dataset.model;
+  updateImgCost();
+}
+function selectAnimModel(el) {
+  document.querySelectorAll('#animModelGrid .model-opt').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedAnimModel = el.dataset.model;
+  updateAnimCost();
+}
+
+// ─── ASPECT RATIO ────────────────────────────────────────
+function selectAspect(el) {
+  document.querySelectorAll('#aspectGrid .aspect-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedAspect = el.dataset.ar;
+}
+function selectAnimAspect(el) {
+  document.querySelectorAll('#animAspectGrid .aspect-btn').forEach(b => b.classList.remove('selected'));
+  el.classList.add('selected');
+  state.selectedAnimAspect = el.dataset.ar;
+}
+
+// ─── COUNT ───────────────────────────────────────────────
+function updateImgCount(val) {
+  state.imgCount = parseInt(val);
+  document.getElementById('imgCountLabel').textContent = val;
+  updateImgCost();
+}
+
+// ─── COST ESTIMATES ──────────────────────────────────────
+function updateImgCost() {
+  const cost = (IMG_COSTS[state.selectedImgModel] * state.imgCount).toFixed(4);
+  document.getElementById('imgCostEstimate').textContent = '$' + cost;
+}
+function updateAnimCost() {
+  const dur = parseInt(document.getElementById('animDuration')?.value || 10);
+  const cost = (ANIM_COST_PER_SEC[state.selectedAnimModel] * dur).toFixed(3);
+  document.getElementById('animCostEstimate').textContent = '$' + cost;
+}
+document.addEventListener('change', e => {
+  if (e.target.id === 'animDuration' || e.target.id === 'animResolution') updateAnimCost();
+});
+
+// ─── REF SLOTS ───────────────────────────────────────────
+function renderRefSlots() {
+  const grid = document.getElementById('refGrid');
+  grid.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'ref-slot';
+    slot.onclick = () => triggerRefUpload(i);
+    if (state.refImages[i]) {
+      const img = document.createElement('img');
+      img.src = state.refImages[i];
+      slot.appendChild(img);
+      const rm = document.createElement('button');
+      rm.className = 'remove-ref';
+      rm.textContent = '✕';
+      rm.onclick = e => { e.stopPropagation(); state.refImages[i] = null; renderRefSlots(); };
+      slot.appendChild(rm);
+    } else {
+      slot.innerHTML = `<div style="font-size:18px;opacity:0.3">+</div><div style="font-size:9px;">REF ${i+1}</div>`;
+    }
+    grid.appendChild(slot);
+  }
+}
+let activeRefSlot = 0;
+function triggerRefUpload(i) {
+  if (state.refImages[i]) return;
+  activeRefSlot = i;
+  document.getElementById('refFileInput').click();
+}
+function handleRefUpload(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { state.refImages[activeRefSlot] = e.target.result; renderRefSlots(); };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+
+// ─── FRAME UPLOADS ───────────────────────────────────────
+function triggerFrameUpload(which) {
+  document.getElementById(which + 'FrameInput').click();
+}
+function handleFrameUpload(which, event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    if (which === 'start') state.startFrame = e.target.result;
+    else state.endFrame = e.target.result;
+    const zone = document.getElementById(which + 'FrameZone');
+    zone.innerHTML = '';
+    const img = document.createElement('img');
+    img.src = e.target.result;
+    zone.appendChild(img);
+    const rm = document.createElement('button');
+    rm.className = 'frame-remove';
+    rm.textContent = '✕';
+    rm.style.display = 'flex';
+    rm.onclick = (ev) => { ev.stopPropagation(); removeFrame(which, ev); };
+    zone.appendChild(rm);
+  };
+  reader.readAsDataURL(file);
+  event.target.value = '';
+}
+function removeFrame(which, event) {
+  if (event) event.stopPropagation();
+  if (which === 'start') { state.startFrame = null; resetFrameZone('startFrameZone', '▶'); }
+  else { state.endFrame = null; resetFrameZone('endFrameZone', '⏹'); }
+}
+function resetFrameZone(id, icon) {
+  const zone = document.getElementById(id);
+  zone.innerHTML = `<div style="font-size:20px;opacity:0.4">${icon}</div><div>Click to upload</div>`;
+}
+
+// ─── REPLICATE API CALL ──────────────────────────────────
+async function replicateRun(model, input, progressEl, progressFill, progressText) {
+  const key = state.apiKey;
+  setStatus('Generating...', null);
+
+  // Start prediction
+  const startRes = await fetch('https://api.replicate.com/v1/models/' + model + '/predictions', {
+    method: 'POST',
+    headers: {
+      'Authorization': 'Bearer ' + key,
+      'Content-Type': 'application/json',
+      'Prefer': 'wait'
+    },
+    body: JSON.stringify({ input })
+  });
+
+  if (!startRes.ok) {
+    const err = await startRes.json().catch(() => ({}));
+    throw new Error(err.detail || 'API error ' + startRes.status);
+  }
+
+  let prediction = await startRes.json();
+  let pct = 10;
+
+  // Poll
+  while (!['succeeded', 'failed', 'canceled'].includes(prediction.status)) {
+    await sleep(2000);
+    pct = Math.min(pct + 10, 90);
+    if (progressFill) progressFill.style.width = pct + '%';
+    if (progressText) progressText.textContent = 'Processing... ' + pct + '%';
+
+    const pollRes = await fetch('https://api.replicate.com/v1/predictions/' + prediction.id, {
+      headers: { 'Authorization': 'Bearer ' + key }
+    });
+    prediction = await pollRes.json();
+  }
+
+  if (prediction.status === 'failed') throw new Error(prediction.error || 'Generation failed');
+  return prediction.output;
+}
+
+// ─── GENERATE IMAGES ─────────────────────────────────────
+async function generateImages() {
+  if (!state.apiKey) { notify('Enter your API key in Settings first', 'error'); return; }
+  const prompt = document.getElementById('imgPrompt').value.trim();
+  if (!prompt) { notify('Enter a prompt first', 'error'); return; }
+
+  const btn = document.getElementById('imgGenBtn');
+  const progressWrap = document.getElementById('imgProgress');
+  const progressFill = document.getElementById('imgProgressFill');
+  const progressText = document.getElementById('imgProgressText');
+
+  btn.disabled = true;
+  progressWrap.classList.add('visible');
+  progressFill.style.width = '5%';
+  progressText.textContent = 'Starting generation...';
+
+  try {
+    const model = IMG_MODELS[state.selectedImgModel];
+    const [w, h] = arToPixels(state.selectedAspect);
+
+    let input = {
+      prompt,
+      num_outputs: state.imgCount,
+      width: w,
+      height: h,
+      output_format: 'webp',
+      output_quality: 90
+    };
+
+    const negPrompt = document.getElementById('imgNegPrompt').value.trim();
+    if (negPrompt) input.negative_prompt = negPrompt;
+
+    // Attach ref images if present
+    const refs = state.refImages.filter(Boolean);
+    if (refs.length > 0 && state.selectedImgModel !== 'imagen-3') {
+      input.image = refs[0]; // primary ref
+    }
+
+    progressFill.style.width = '20%';
+    progressText.textContent = 'Sending to Replicate...';
+
+    const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
+
+    progressFill.style.width = '100%';
+    progressText.textContent = 'Done!';
+
+    const urls = Array.isArray(output) ? output : [output];
+    renderImageOutput(urls);
+    addToHistory(urls);
+
+    const cost = IMG_COSTS[state.selectedImgModel] * urls.length;
+    state.stats.images += urls.length;
+    state.stats.spend += cost;
+    updateStats();
+    setStatus('Ready', 'active');
+    notify('Generated ' + urls.length + ' image' + (urls.length > 1 ? 's' : ''));
+
+  } catch (err) {
+    console.error(err);
+    notify(err.message, 'error');
+    setStatus('Error', 'error');
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      progressWrap.classList.remove('visible');
+      progressFill.style.width = '0%';
+    }, 1500);
+  }
+}
+
+// ─── GENERATE ANIMATION ──────────────────────────────────
+async function generateAnimation() {
+  if (!state.apiKey) { notify('Enter your API key in Settings first', 'error'); return; }
+  if (!state.startFrame) { notify('Upload a start frame first', 'error'); return; }
+
+  const btn = document.getElementById('animGenBtn');
+  const progressWrap = document.getElementById('animProgress');
+  const progressFill = document.getElementById('animProgressFill');
+  const progressText = document.getElementById('animProgressText');
+
+  btn.disabled = true;
+  progressWrap.classList.add('visible');
+  progressFill.style.width = '5%';
+  progressText.textContent = 'Starting animation...';
+
+  try {
+    const model = ANIM_MODELS[state.selectedAnimModel];
+    const dur = parseInt(document.getElementById('animDuration').value);
+    const res = document.getElementById('animResolution').value;
+    const motion = document.getElementById('motionIntensity').value;
+
+    let input = {
+      prompt: document.getElementById('animPrompt').value.trim() || 'cinematic motion, smooth camera movement',
+      image: state.startFrame,
+      duration: dur,
+      cfg: parseFloat(motion) / 2,
+      aspect_ratio: state.selectedAnimAspect
+    };
+
+    const negPrompt = document.getElementById('animNegPrompt').value.trim();
+    if (negPrompt) input.negative_prompt = negPrompt;
+    if (state.endFrame) input.tail_image = state.endFrame;
+
+    progressFill.style.width = '20%';
+    progressText.textContent = 'Submitting to Replicate...';
+
+    const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
+
+    progressFill.style.width = '100%';
+    progressText.textContent = 'Done!';
+
+    const url = Array.isArray(output) ? output[0] : output;
+    renderAnimOutput(url);
+
+    const cost = ANIM_COST_PER_SEC[state.selectedAnimModel] * dur;
+    state.stats.animations++;
+    state.stats.spend += cost;
+    updateStats();
+    setStatus('Ready', 'active');
+    notify('Animation complete!');
+
+  } catch (err) {
+    console.error(err);
+    notify(err.message, 'error');
+    setStatus('Error', 'error');
+  } finally {
+    btn.disabled = false;
+    setTimeout(() => {
+      progressWrap.classList.remove('visible');
+      progressFill.style.width = '0%';
+    }, 1500);
+  }
+}
+
+// ─── RENDER OUTPUT ───────────────────────────────────────
+function renderImageOutput(urls) {
+  const container = document.getElementById('imgOutput');
+  container.innerHTML = '';
+  const grid = document.createElement('div');
+  grid.className = 'output-grid';
+  urls.forEach((url, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'output-img-wrap';
+    const img = document.createElement('img');
+    img.src = url;
+    img.alt = 'Generated image ' + (i+1);
+    const actions = document.createElement('div');
+    actions.className = 'output-img-actions';
+    actions.innerHTML = `
+      <button class="btn btn-secondary" style="font-size:10px;padding:4px 8px" onclick="downloadImage('${url}', 'wealthsloth-${Date.now()}.webp')">⬇ Save</button>
+      <button class="btn btn-ghost" style="font-size:10px;padding:4px 8px" onclick="sendToAnimate('${url}')">▶ Animate</button>
+    `;
+    wrap.appendChild(img);
+    wrap.appendChild(actions);
+    grid.appendChild(wrap);
+  });
+  container.appendChild(grid);
+}
+
+function renderAnimOutput(url) {
+  const container = document.getElementById('animOutput');
+  container.innerHTML = `
+    <video class="video-output" controls autoplay loop>
+      <source src="${url}" type="video/mp4">
+    </video>
+    <div style="margin-top:8px;display:flex;gap:6px;">
+      <button class="btn btn-primary" onclick="downloadVideo('${url}')">⬇ Download MP4</button>
+    </div>
+  `;
+}
+
+// ─── HISTORY ─────────────────────────────────────────────
+function addToHistory(urls) {
+  state.history.unshift(...urls);
+  updateHistoryCount();
+}
+function updateHistoryCount() {
+  const el = document.getElementById('histCount');
+  el.textContent = state.history.length ? '(' + state.history.length + ')' : '';
+}
+function renderHistory() {
+  const container = document.getElementById('historyOutput');
+  if (!state.history.length) {
+    container.innerHTML = '<div class="empty-state"><div class="empty-icon">🗂</div><div>No images yet this session</div></div>';
+    return;
+  }
+  const grid = document.createElement('div');
+  grid.className = 'history-grid';
+  state.history.forEach((url, i) => {
+    const item = document.createElement('div');
+    item.className = 'history-item';
+    item.innerHTML = `
+      <img src="${url}" alt="History ${i+1}">
+      <div class="history-item-actions">
+        <button class="btn btn-secondary" style="font-size:9px;padding:3px 7px" onclick="downloadImage('${url}', 'ws-${i+1}.webp')">⬇</button>
+        <button class="btn btn-ghost" style="font-size:9px;padding:3px 7px" onclick="sendToAnimate('${url}')">▶ Anim</button>
+      </div>
+    `;
+    grid.appendChild(item);
+  });
+  container.innerHTML = '';
+  container.appendChild(grid);
+}
+document.getElementById('tab-history').addEventListener('click', renderHistory);
+function clearHistory() {
+  state.history = [];
+  updateHistoryCount();
+  renderHistory();
+}
+
+// ─── SEND TO ANIMATE ─────────────────────────────────────
+function sendToAnimate(url) {
+  // Set as start frame and switch to animate tab
+  state.startFrame = url;
+  const zone = document.getElementById('startFrameZone');
+  zone.innerHTML = '';
+  const img = document.createElement('img');
+  img.src = url;
+  zone.appendChild(img);
+  const rm = document.createElement('button');
+  rm.className = 'frame-remove';
+  rm.textContent = '✕';
+  rm.style.display = 'flex';
+  rm.onclick = (e) => { e.stopPropagation(); removeFrame('start', e); };
+  zone.appendChild(rm);
+  showTab('animate');
+  notify('Image loaded as start frame');
+}
+
+// ─── DOWNLOAD ────────────────────────────────────────────
+function downloadImage(url, filename) {
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.target = '_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+function downloadVideo(url) {
+  const a = document.createElement('a');
+  a.href = url; a.download = 'wealthsloth-animation-' + Date.now() + '.mp4'; a.target = '_blank';
+  document.body.appendChild(a); a.click(); document.body.removeChild(a);
+}
+
+// ─── UTILS ───────────────────────────────────────────────
+function arToPixels(ar) {
+  const map = {
+    '1:1':  [1024, 1024],
+    '16:9': [1280, 720],
+    '9:16': [720, 1280],
+    '4:3':  [1024, 768],
+    '3:2':  [1152, 768],
+    '21:9': [1344, 576]
+  };
+  return map[ar] || [1024, 1024];
+}
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+function notify(msg, type = 'success') {
+  const el = document.getElementById('notif');
+  el.textContent = msg;
+  el.className = 'notif show ' + type;
+  setTimeout(() => el.className = 'notif', 3000);
+}
+function setStatus(text, state) {
+  document.getElementById('statusText').textContent = text;
+  const dot = document.getElementById('statusDot');
+  dot.className = 'status-dot' + (state ? ' ' + state : '');
+}
+function updateStats() {
+  document.getElementById('statImages').textContent = state.stats.images;
+  document.getElementById('statAnimations').textContent = state.stats.animations;
+  document.getElementById('statSpend').textContent = '$' + state.stats.spend.toFixed(4);
+  document.getElementById('sessionCost').textContent = '$' + state.stats.spend.toFixed(4);
+}
+</script>
+</body>
+</html>
