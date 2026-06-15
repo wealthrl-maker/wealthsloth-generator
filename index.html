@@ -752,7 +752,7 @@
       <!-- MR.TIE Reference Images -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">MR.TIE Reference Images</div>
-        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Upload reference images to maintain character consistency across generations.</p>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">When reference images are uploaded, the full MR.TIE character prompt is automatically prepended to your prompt for consistency.</p>
         <div class="ref-grid" id="refGrid">
           <!-- 4 slots rendered by JS -->
         </div>
@@ -1426,25 +1426,28 @@ async function generateImages() {
 
   try {
     const model = IMG_MODELS[state.selectedImgModel];
-    const [w, h] = arToPixels(state.selectedAspect);
+    const isFlux = state.selectedImgModel.startsWith('flux');
 
-    let input = {
-      prompt,
-      num_outputs: state.imgCount,
-      width: w,
-      height: h,
-      output_format: 'webp',
-      output_quality: 90
-    };
+    // If MR.TIE reference images are uploaded, prepend the canonical prompt
+    const refs = state.refImages.filter(Boolean);
+    let fullPrompt = prompt;
+    if (refs.length > 0) {
+      fullPrompt = MRTIE_PROMPT + ', ' + prompt;
+    }
+
+    let input = { prompt: fullPrompt, num_outputs: state.imgCount, output_format: 'webp', output_quality: 90 };
+
+    // Flux models use aspect_ratio string; others use width/height
+    if (isFlux) {
+      input.aspect_ratio = state.selectedAspect;
+    } else {
+      const [w, h] = arToPixels(state.selectedAspect);
+      input.width = w;
+      input.height = h;
+    }
 
     const negPrompt = document.getElementById('imgNegPrompt').value.trim();
     if (negPrompt) input.negative_prompt = negPrompt;
-
-    // Attach ref images if present
-    const refs = state.refImages.filter(Boolean);
-    if (refs.length > 0 && state.selectedImgModel !== 'imagen-3') {
-      input.image = refs[0]; // primary ref
-    }
 
     progressFill.style.width = '20%';
     progressText.textContent = 'Sending to Replicate...';
