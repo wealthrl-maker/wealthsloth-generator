@@ -740,12 +740,8 @@
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">Prompt</div>
         <div class="field">
-          <label>Positive Prompt</label>
-          <textarea id="imgPrompt" rows="4" placeholder="Describe what you want to generate..."></textarea>
-        </div>
-        <div class="field">
-          <label>Negative Prompt</label>
-          <textarea id="imgNegPrompt" rows="2" placeholder="cartoon, blur, text, watermark, low quality..."></textarea>
+          <label>Describe what you want to see</label>
+          <textarea id="imgPrompt" rows="4" placeholder="Describe what you want to generate. Tip: Flux follows positive description only — say what you DO want, not what to avoid."></textarea>
         </div>
       </div>
 
@@ -766,7 +762,7 @@
           <button class="aspect-btn" data-ar="1:1" onclick="selectAspect(this)">1:1 Square</button>
           <button class="aspect-btn selected" data-ar="16:9" onclick="selectAspect(this)">16:9 Landscape</button>
           <button class="aspect-btn" data-ar="9:16" onclick="selectAspect(this)">9:16 Portrait</button>
-          <button class="aspect-btn" data-ar="4:3" onclick="selectAspect(this)">4:3</button>
+          <button class="aspect-btn" data-ar="2:3" onclick="selectAspect(this)">2:3</button>
           <button class="aspect-btn" data-ar="3:2" onclick="selectAspect(this)">3:2</button>
           <button class="aspect-btn" data-ar="21:9" onclick="selectAspect(this)">21:9 Ultra</button>
         </div>
@@ -859,7 +855,6 @@
             <div class="frame-upload" id="startFrameZone" onclick="triggerFrameUpload('start')">
               <div style="font-size:20px;opacity:0.4">▶</div>
               <div>Click to upload</div>
-              <button class="frame-remove" id="startFrameRemove" onclick.stop="removeFrame('start', event)">✕</button>
             </div>
             <input type="file" id="startFrameInput" accept="image/*" style="display:none" onchange="handleFrameUpload('start', event)">
           </div>
@@ -868,7 +863,6 @@
             <div class="frame-upload" id="endFrameZone" onclick="triggerFrameUpload('end')">
               <div style="font-size:20px;opacity:0.4">⏹</div>
               <div>Click to upload</div>
-              <button class="frame-remove" id="endFrameRemove" onclick.stop="removeFrame('end', event)">✕</button>
             </div>
             <input type="file" id="endFrameInput" accept="image/*" style="display:none" onchange="handleFrameUpload('end', event)">
           </div>
@@ -880,7 +874,7 @@
         <div class="card-title">Animation Settings</div>
         <div class="row">
           <div class="field">
-            <label>Duration</label>
+            <label>Duration <span style="color:var(--grey-dim);font-size:9px;">(Kling: 5 or 10 only)</span></label>
             <select id="animDuration">
               <option value="5">5 seconds</option>
               <option value="10" selected>10 seconds</option>
@@ -975,36 +969,12 @@
         </div>
       </div>
 
-      <!-- Pose -->
+      <!-- MR.TIE Reference Images -->
       <div class="card" style="margin-bottom:14px;">
-        <div class="card-title">Step 2 — MR.TIE Pose</div>
-        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Pose must match the trigger. Never repeat the same pose in consecutive thumbnails.</p>
-        <div id="poseGrid" style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-          <div class="pose-opt" data-pose="default" onclick="selectPose(this)">
-            <div class="pose-name">Default / Hero</div>
-            <div class="pose-desc">Hands clasped, facing camera. Calm. Authoritative.</div>
-          </div>
-          <div class="pose-opt" data-pose="side" onclick="selectPose(this)">
-            <div class="pose-name">Side Profile</div>
-            <div class="pose-desc">Facing left. Arms crossed or clasped. Contemplative.</div>
-          </div>
-          <div class="pose-opt" data-pose="thinking" onclick="selectPose(this)">
-            <div class="pose-name">Thinking</div>
-            <div class="pose-desc">Hand raised to chin. Head tilted slightly. Eyes forward.</div>
-          </div>
-          <div class="pose-opt" data-pose="pointing" onclick="selectPose(this)">
-            <div class="pose-name">Pointing</div>
-            <div class="pose-desc">One arm extended, finger pointing at screen or chart.</div>
-          </div>
-          <div class="pose-opt" data-pose="seated" onclick="selectPose(this)">
-            <div class="pose-name">Seated</div>
-            <div class="pose-desc">Upright in chair. Hands on desk or lap. Never slouched.</div>
-          </div>
-          <div class="pose-opt" data-pose="back" onclick="selectPose(this)">
-            <div class="pose-name">Back View</div>
-            <div class="pose-desc">Full suit back visible. Looking at cityscape or screen ahead.</div>
-          </div>
-        </div>
+        <div class="card-title">Step 2 — MR.TIE Reference Images</div>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Upload reference images of MR.TIE so the thumbnail stays consistent with his design. When references are added, generation uses Flux.2 Pro ($0.03/image). Pose comes from your prompt below — describe it there.</p>
+        <div class="ref-grid" id="thumbRefGrid"></div>
+        <input type="file" id="thumbRefFileInput" accept="image/*" style="display:none" onchange="handleThumbRefUpload(event)">
       </div>
 
       <!-- Thumbnail Text -->
@@ -1184,6 +1154,7 @@ const IMG_COSTS = {
   'flux-pro': 0.055,
   'imagen-3': 0.040
 };
+const FLUX2_REF_COST = 0.03; // flux-2-pro per image when references used
 const ANIM_COST_PER_SEC = { 'kling-3': 0.028, 'haiper-2': 0.018 };
 
 // ─── MODEL IDs ──────────────────────────────────────────
@@ -1191,10 +1162,11 @@ const IMG_MODELS = {
   'flux-schnell': 'black-forest-labs/flux-schnell',
   'flux-dev':     'black-forest-labs/flux-dev',
   'flux-pro':     'black-forest-labs/flux-1.1-pro',
-  'imagen-3':     'google-deepmind/imagen-3'
+  'imagen-3':     'google/imagen-3'
 };
+const FLUX2_MODEL = 'black-forest-labs/flux-2-pro'; // reference-based generation
 const ANIM_MODELS = {
-  'kling-3':   'klingai/kling-video-v2-master',
+  'kling-3':   'kwaivgi/kling-v2.1',
   'haiper-2':  'haiper-ai/haiper-video-2'
 };
 
@@ -1210,6 +1182,7 @@ window.addEventListener('load', () => {
     document.getElementById('keyModal').classList.remove('hidden');
   }
   renderRefSlots();
+  renderThumbRefSlots();
   updateImgCost();
   updateAnimCost();
 });
@@ -1276,8 +1249,16 @@ function updateImgCount(val) {
 
 // ─── COST ESTIMATES ──────────────────────────────────────
 function updateImgCost() {
-  const cost = (IMG_COSTS[state.selectedImgModel] * state.imgCount).toFixed(4);
-  document.getElementById('imgCostEstimate').textContent = '$' + cost;
+  const refs = state.refImages.filter(Boolean);
+  let cost, note;
+  if (refs.length > 0) {
+    cost = (FLUX2_REF_COST * state.imgCount).toFixed(4);
+    note = ' (Flux.2 Pro · references)';
+  } else {
+    cost = (IMG_COSTS[state.selectedImgModel] * state.imgCount).toFixed(4);
+    note = '';
+  }
+  document.getElementById('imgCostEstimate').textContent = '$' + cost + note;
 }
 function updateAnimCost() {
   const dur = parseInt(document.getElementById('animDuration')?.value || 10);
@@ -1303,7 +1284,7 @@ function renderRefSlots() {
       const rm = document.createElement('button');
       rm.className = 'remove-ref';
       rm.textContent = '✕';
-      rm.onclick = e => { e.stopPropagation(); state.refImages[i] = null; renderRefSlots(); };
+      rm.onclick = e => { e.stopPropagation(); state.refImages[i] = null; renderRefSlots(); updateImgCost(); };
       slot.appendChild(rm);
     } else {
       slot.innerHTML = `<div style="font-size:18px;opacity:0.3">+</div><div style="font-size:9px;">REF ${i+1}</div>`;
@@ -1320,7 +1301,7 @@ function triggerRefUpload(i) {
 function handleRefUpload(event) {
   const file = event.target.files[0]; if (!file) return;
   const reader = new FileReader();
-  reader.onload = e => { state.refImages[activeRefSlot] = e.target.result; renderRefSlots(); };
+  reader.onload = e => { state.refImages[activeRefSlot] = e.target.result; renderRefSlots(); updateImgCost(); };
   reader.readAsDataURL(file);
   event.target.value = '';
 }
@@ -1425,48 +1406,74 @@ async function generateImages() {
   progressText.textContent = 'Starting generation...';
 
   try {
-    const model = IMG_MODELS[state.selectedImgModel];
-    const isFlux = state.selectedImgModel.startsWith('flux');
-
-    // If MR.TIE reference images are uploaded, prepend the canonical prompt
     const refs = state.refImages.filter(Boolean);
-    let fullPrompt = prompt;
-    if (refs.length > 0) {
-      fullPrompt = MRTIE_PROMPT + ', ' + prompt;
-    }
+    const useReferences = refs.length > 0;
 
-    let input = { prompt: fullPrompt, num_outputs: state.imgCount, output_format: 'webp', output_quality: 90 };
+    let model, input, costPerImage;
 
-    // Flux models use aspect_ratio string; others use width/height
-    if (isFlux) {
-      input.aspect_ratio = state.selectedAspect;
+    if (useReferences) {
+      // Reference-based generation via Flux.2 Pro — keeps MR.TIE consistent.
+      model = FLUX2_MODEL;
+      costPerImage = FLUX2_REF_COST;
+      input = {
+        prompt: 'Generate this scene keeping the character from the reference images exactly consistent — same body shape, same charcoal grey color, same black suit, same wine red tie, same proportions. ' + prompt,
+        aspect_ratio: fluxAspect(state.selectedAspect),
+        output_format: 'webp',
+        output_quality: 90
+      };
+      // Attach references as input_image, input_image_2, ...
+      refs.forEach((img, i) => {
+        input[i === 0 ? 'input_image' : 'input_image_' + (i + 1)] = img;
+      });
+      // Flux.2 Pro generates one image per call; loop handled below
     } else {
-      const [w, h] = arToPixels(state.selectedAspect);
-      input.width = w;
-      input.height = h;
+      model = IMG_MODELS[state.selectedImgModel];
+      const isFlux = state.selectedImgModel.startsWith('flux');
+      costPerImage = IMG_COSTS[state.selectedImgModel];
+      input = { prompt, output_format: 'webp', output_quality: 90 };
+      if (isFlux) {
+        input.aspect_ratio = fluxAspect(state.selectedAspect);
+        input.num_outputs = state.imgCount;
+      } else {
+        // Imagen 3 supports 1:1, 3:4, 4:3, 9:16, 16:9 only
+        const imagenMap = { '1:1':'1:1','16:9':'16:9','9:16':'9:16','4:3':'4:3','3:2':'4:3','2:3':'3:4','21:9':'16:9' };
+        input.aspect_ratio = imagenMap[state.selectedAspect] || '1:1';
+      }
     }
-
-    const negPrompt = document.getElementById('imgNegPrompt').value.trim();
-    if (negPrompt) input.negative_prompt = negPrompt;
 
     progressFill.style.width = '20%';
-    progressText.textContent = 'Sending to Replicate...';
+    progressText.textContent = useReferences ? 'Generating with references (Flux.2 Pro)...' : 'Sending to Replicate...';
 
-    const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
+    let urls = [];
+
+    // Models that return multiple outputs in one call: Flux Schnell/Dev/Pro (non-ref)
+    const supportsBatch = !useReferences && state.selectedImgModel.startsWith('flux');
+
+    if (supportsBatch) {
+      const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
+      urls = Array.isArray(output) ? output : [output];
+    } else {
+      // Loop to produce the requested count (Flux.2 Pro, Imagen 3)
+      for (let n = 0; n < state.imgCount; n++) {
+        progressText.textContent = 'Generating image ' + (n + 1) + ' of ' + state.imgCount + '...';
+        const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
+        const u = Array.isArray(output) ? output[0] : output;
+        if (u) urls.push(u);
+      }
+    }
 
     progressFill.style.width = '100%';
     progressText.textContent = 'Done!';
 
-    const urls = Array.isArray(output) ? output : [output];
     renderImageOutput(urls);
     addToHistory(urls);
 
-    const cost = IMG_COSTS[state.selectedImgModel] * urls.length;
+    const cost = costPerImage * urls.length;
     state.stats.images += urls.length;
     state.stats.spend += cost;
     updateStats();
     setStatus('Ready', 'active');
-    notify('Generated ' + urls.length + ' image' + (urls.length > 1 ? 's' : ''));
+    notify('Generated ' + urls.length + ' image' + (urls.length > 1 ? 's' : '') + (useReferences ? ' (with references)' : ''));
 
   } catch (err) {
     console.error(err);
@@ -1499,23 +1506,36 @@ async function generateAnimation() {
   try {
     const model = ANIM_MODELS[state.selectedAnimModel];
     const dur = parseInt(document.getElementById('animDuration').value);
-    const res = document.getElementById('animResolution').value;
     const motion = document.getElementById('motionIntensity').value;
-
-    let input = {
-      prompt: document.getElementById('animPrompt').value.trim() || 'cinematic motion, smooth camera movement',
-      image: state.startFrame,
-      duration: dur,
-      cfg: parseFloat(motion) / 2,
-      aspect_ratio: state.selectedAnimAspect
-    };
-
+    const animPrompt = document.getElementById('animPrompt').value.trim() || 'cinematic motion, smooth natural movement';
     const negPrompt = document.getElementById('animNegPrompt').value.trim();
-    if (negPrompt) input.negative_prompt = negPrompt;
-    if (state.endFrame) input.tail_image = state.endFrame;
+
+    let input;
+
+    if (state.selectedAnimModel === 'kling-3') {
+      // kwaivgi/kling-v2.1 schema
+      input = {
+        prompt: animPrompt,
+        start_image: state.startFrame,
+        duration: dur,                       // 5 or 10 only
+        cfg_scale: parseFloat(motion) / 10,  // 0–1 range
+        aspect_ratio: state.selectedAnimAspect
+      };
+      if (negPrompt) input.negative_prompt = negPrompt;
+      if (state.endFrame) input.end_image = state.endFrame;
+    } else {
+      // haiper-ai/haiper-video-2 schema
+      input = {
+        prompt: animPrompt,
+        frame_image: state.startFrame,
+        duration: dur,
+        aspect_ratio: state.selectedAnimAspect
+      };
+      if (negPrompt) input.negative_prompt = negPrompt;
+    }
 
     progressFill.style.width = '20%';
-    progressText.textContent = 'Submitting to Replicate...';
+    progressText.textContent = 'Submitting to Replicate (video takes 2-5 min)...';
 
     const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
 
@@ -1653,16 +1673,20 @@ function downloadVideo(url) {
 }
 
 // ─── UTILS ───────────────────────────────────────────────
-function arToPixels(ar) {
-  const map = {
-    '1:1':  [1024, 1024],
-    '16:9': [1280, 720],
-    '9:16': [720, 1280],
-    '4:3':  [1024, 768],
-    '3:2':  [1152, 768],
-    '21:9': [1344, 576]
+// Flux supports: 1:1, 16:9, 9:16, 21:9, 9:21, 2:3, 3:2, 4:5, 5:4
+// Map any UI selection to the nearest supported value.
+function fluxAspect(ar) {
+  const supported = {
+    '1:1': '1:1',
+    '16:9': '16:9',
+    '9:16': '9:16',
+    '21:9': '21:9',
+    '3:2': '3:2',
+    '2:3': '2:3',
+    '4:3': '3:2',   // 4:3 not supported → closest landscape
+    '3:4': '2:3'    // 3:4 not supported → closest portrait
   };
-  return map[ar] || [1024, 1024];
+  return supported[ar] || '1:1';
 }
 function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 function notify(msg, type = 'success') {
@@ -1686,15 +1710,6 @@ function updateStats() {
 // ─── THUMBNAIL TAB ───────────────────────────────────────
 const MRTIE_PROMPT = `A unique stylized sloth character named MR.TIE, upright bipedal posture, smooth minimal geometric designer toy aesthetic, matte charcoal dark grey body, large smooth rounded dome head with slightly elongated side profile, small flat wide nose centered on face, two small circular pure black eyes with calm focused expression, closed neutral mouth present on face but completely expressionless — no smile no frown, no visible ears, no fur texture, broad rounded shoulders, compact symmetrical proportions, short thick arms, stubby legs, flat wide feet, four short rounded fingers per hand no claws visible, three rounded toes per foot no claws visible, wearing a clean tailored pure black two-button suit, crisp white dress shirt with collar and cuffs visible, perfectly centered deep wine red tie hex #6B0F1A no wrinkles, clean minimal gold watch on left wrist with no numbers or brand markings, non-cartoon, non-realistic, professional and elegant, symmetrical, ultra clean, smooth matte surfaces, soft ambient lighting, high detail, 4K, consistent design`;
 
-const POSE_DESCRIPTIONS = {
-  default:  'standing upright facing camera directly, hands clasped in front, calm authoritative pose',
-  side:     'standing upright in side profile facing left, arms slightly crossed, contemplative stance',
-  thinking: 'one hand raised to chin area, head tilted very slightly, eyes looking forward, thinking pose',
-  pointing: 'one arm fully extended outward, single finger pointing directly toward viewer or off-frame',
-  seated:   'seated upright in a chair, hands resting on desk, posture perfectly straight, never slouched',
-  back:     'full back view of suit visible, standing and looking ahead at something in the distance'
-};
-
 const TRIGGER_ENERGY = {
   fear:     'tense ominous energy, something is wrong, the viewer senses danger before reading a word',
   self:     'confrontational mirror-like energy, the viewer recognizes themselves in this scene',
@@ -1704,7 +1719,7 @@ const TRIGGER_ENERGY = {
 };
 
 let thumbTrigger = null;
-let thumbPose = null;
+state.thumbRefImages = [null, null, null, null];
 
 function selectTrigger(el) {
   document.querySelectorAll('.trigger-opt').forEach(o => o.classList.remove('selected'));
@@ -1712,10 +1727,42 @@ function selectTrigger(el) {
   thumbTrigger = el.dataset.trigger;
 }
 
-function selectPose(el) {
-  document.querySelectorAll('.pose-opt').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
-  thumbPose = el.dataset.pose;
+// Thumbnail reference image slots
+function renderThumbRefSlots() {
+  const grid = document.getElementById('thumbRefGrid');
+  if (!grid) return;
+  grid.innerHTML = '';
+  for (let i = 0; i < 4; i++) {
+    const slot = document.createElement('div');
+    slot.className = 'ref-slot';
+    slot.onclick = () => triggerThumbRefUpload(i);
+    if (state.thumbRefImages[i]) {
+      const img = document.createElement('img');
+      img.src = state.thumbRefImages[i];
+      slot.appendChild(img);
+      const rm = document.createElement('button');
+      rm.className = 'remove-ref';
+      rm.textContent = '✕';
+      rm.onclick = e => { e.stopPropagation(); state.thumbRefImages[i] = null; renderThumbRefSlots(); };
+      slot.appendChild(rm);
+    } else {
+      slot.innerHTML = `<div style="font-size:18px;opacity:0.3">+</div><div style="font-size:9px;">REF ${i+1}</div>`;
+    }
+    grid.appendChild(slot);
+  }
+}
+let activeThumbRefSlot = 0;
+function triggerThumbRefUpload(i) {
+  if (state.thumbRefImages[i]) return;
+  activeThumbRefSlot = i;
+  document.getElementById('thumbRefFileInput').click();
+}
+function handleThumbRefUpload(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => { state.thumbRefImages[activeThumbRefSlot] = e.target.result; renderThumbRefSlots(); };
+  reader.readAsDataURL(file);
+  event.target.value = '';
 }
 
 function updateThumbWordCount() {
@@ -1746,7 +1793,6 @@ document.addEventListener('change', e => {
 async function generateThumbnail() {
   if (!state.apiKey) { notify('Enter your API key in Settings first', 'error'); return; }
   if (!thumbTrigger) { notify('Select a trigger first (Step 1)', 'error'); return; }
-  if (!thumbPose) { notify('Select MR.TIE\'s pose first (Step 2)', 'error'); return; }
 
   const thumbText = document.getElementById('thumbText').value.trim();
   const scene = document.getElementById('thumbScene').value.trim();
@@ -1764,27 +1810,44 @@ async function generateThumbnail() {
   progressFill.style.width = '5%';
   progressText.textContent = 'Building prompt...';
 
-  const poseDesc = POSE_DESCRIPTIONS[thumbPose];
   const triggerEnergy = TRIGGER_ENERGY[thumbTrigger];
+  const refs = state.thumbRefImages.filter(Boolean);
+  const useReferences = refs.length > 0;
 
-  let prompt = `YouTube thumbnail image, pure solid black background #000000 only, no gradients, no textures, no photography, exactly three visual elements. `;
-  prompt += `${MRTIE_PROMPT}, ${poseDesc}. `;
+  // Build prompt. When no references, include full MR.TIE description.
+  // When references are present, Flux.2 Pro reads them — keep prompt about scene/pose/text.
+  let prompt = `YouTube thumbnail image, pure solid black background hex #000000 only, no gradients, no photographic background, clean and uncluttered. `;
+  if (!useReferences) {
+    prompt += `${MRTIE_PROMPT}. `;
+  } else {
+    prompt += `Keep the MR.TIE character from the reference images exactly consistent — same charcoal grey body, same black suit, same wine red tie hex #6B0F1A, same proportions and design. `;
+  }
   prompt += `Overall mood: ${triggerEnergy}. `;
-  if (scene) prompt += `Scene: ${scene}. `;
-  if (thumbText) prompt += `Large bold off-white text "#F5F5F5" reading "${thumbText.toUpperCase()}" in thick geometric sans-serif, readable at small sizes, maximum contrast. `;
-  prompt += `One wine red #6B0F1A glowing accent element — outline, glow, or graphic detail. No other accent colors except wine red and the gold watch. No human faces. No clutter. Cinematic premium feel. Ultra clean 4K. Three elements only: MR.TIE character, text overlay, one wine red accent.`;
-
-  const negPrompt = `white background, grey background, gradient, texture, stock photo, human faces, clutter, busy composition, blue, purple, green, yellow, neon, cartoon, chibi, smiling, scared, blur, watermark, low quality, multiple accent colors, background elements`;
+  if (scene) prompt += `Scene and pose: ${scene}. `;
+  if (thumbText) prompt += `Large bold off-white hex #F5F5F5 text reading "${thumbText.toUpperCase()}" in thick geometric sans-serif, high contrast, clearly readable at small sizes. `;
+  prompt += `Exactly one wine red hex #6B0F1A glowing accent element. Only wine red and the gold watch as accent colors. Cinematic, premium, designer toy aesthetic. Ultra clean 4K. Three elements only: MR.TIE, the text, one wine red accent.`;
 
   try {
-    progressFill.style.width = '20%';
-    progressText.textContent = 'Sending to Flux Pro...';
+    let model, input, cost;
 
-    const output = await replicateRun(
-      IMG_MODELS['flux-pro'],
-      { prompt, negative_prompt: negPrompt, width: 1280, height: 720, num_outputs: 1, output_format: 'webp', output_quality: 95 },
-      progressWrap, progressFill, progressText
-    );
+    if (useReferences) {
+      model = FLUX2_MODEL;
+      cost = FLUX2_REF_COST;
+      input = { prompt, aspect_ratio: '16:9', output_format: 'webp', output_quality: 95 };
+      refs.forEach((img, i) => {
+        input[i === 0 ? 'input_image' : 'input_image_' + (i + 1)] = img;
+      });
+      progressText.textContent = 'Generating with references (Flux.2 Pro)...';
+    } else {
+      model = IMG_MODELS['flux-pro']; // Flux 1.1 Pro
+      cost = 0.055;
+      input = { prompt, aspect_ratio: '16:9', output_format: 'webp', output_quality: 95 };
+      progressText.textContent = 'Sending to Flux Pro...';
+    }
+
+    progressFill.style.width = '20%';
+
+    const output = await replicateRun(model, input, progressWrap, progressFill, progressText);
 
     progressFill.style.width = '100%';
     progressText.textContent = 'Done!';
@@ -1794,10 +1857,10 @@ async function generateThumbnail() {
     addToHistory(urls);
 
     state.stats.images++;
-    state.stats.spend += 0.055;
+    state.stats.spend += cost;
     updateStats();
     setStatus('Ready', 'active');
-    notify('Thumbnail generated');
+    notify('Thumbnail generated' + (useReferences ? ' (with references)' : ''));
 
   } catch (err) {
     console.error(err);
