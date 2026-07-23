@@ -748,7 +748,7 @@
       <!-- MR.TIE Reference Images -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">MR.TIE Reference Images</div>
-        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">When reference images are uploaded, the full MR.TIE character prompt is automatically prepended to your prompt for consistency.</p>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Upload ONE master MR.TIE image. Generation switches to Flux Kontext Pro, which edits your master image per your prompt — pose and scene change, character stays locked. Your prompt is sent exactly as written.</p>
         <div class="ref-grid" id="refGrid">
           <!-- 4 slots rendered by JS -->
         </div>
@@ -972,7 +972,7 @@
       <!-- MR.TIE Reference Images -->
       <div class="card" style="margin-bottom:14px;">
         <div class="card-title">Step 2 — MR.TIE Reference Images</div>
-        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Upload reference images of MR.TIE so the thumbnail stays consistent with his design. When references are added, generation uses Flux.2 Pro ($0.03/image). Pose comes from your prompt below — describe it there.</p>
+        <p style="font-size:10px;color:var(--grey-mid);margin-bottom:10px;">Upload reference images of MR.TIE so the thumbnail stays consistent with his design. When references are added, generation uses Flux Kontext Pro ($0.04/image). Pose comes from your prompt below — describe it there.</p>
         <div class="ref-grid" id="thumbRefGrid"></div>
         <input type="file" id="thumbRefFileInput" accept="image/*" style="display:none" onchange="handleThumbRefUpload(event)">
       </div>
@@ -1154,7 +1154,7 @@ const IMG_COSTS = {
   'flux-pro': 0.055,
   'imagen-3': 0.040
 };
-const FLUX2_REF_COST = 0.03; // flux-2-pro per image when references used
+const FLUX2_REF_COST = 0.04; // flux-kontext-pro per image when references used
 const ANIM_COST_PER_SEC = { 'kling-3': 0.028, 'haiper-2': 0.018 };
 
 // ─── MODEL IDs ──────────────────────────────────────────
@@ -1164,7 +1164,7 @@ const IMG_MODELS = {
   'flux-pro':     'black-forest-labs/flux-1.1-pro',
   'imagen-3':     'google/imagen-3'
 };
-const FLUX2_MODEL = 'black-forest-labs/flux-2-pro'; // reference-based generation
+const FLUX2_MODEL = 'black-forest-labs/flux-kontext-pro'; // reference-based editing (character lock)
 const ANIM_MODELS = {
   'kling-3':   'kwaivgi/kling-v2.1',
   'haiper-2':  'haiper-ai/haiper-video-2'
@@ -1416,16 +1416,13 @@ async function generateImages() {
       model = FLUX2_MODEL;
       costPerImage = FLUX2_REF_COST;
       input = {
-        prompt: 'Generate this scene keeping the character from the reference images exactly consistent — same body shape, same charcoal grey color, same black suit, same wine red tie, same proportions. ' + prompt,
+        prompt: prompt,
+        input_image: refs[0],
         aspect_ratio: fluxAspect(state.selectedAspect),
         output_format: 'webp',
         output_quality: 90
       };
-      // Attach references as input_image, input_image_2, ...
-      refs.forEach((img, i) => {
-        input[i === 0 ? 'input_image' : 'input_image_' + (i + 1)] = img;
-      });
-      // Flux.2 Pro generates one image per call; loop handled below
+      // Kontext Pro: ONE master image + edit instruction. Prompt passes through unmodified.
     } else {
       model = IMG_MODELS[state.selectedImgModel];
       const isFlux = state.selectedImgModel.startsWith('flux');
@@ -1442,7 +1439,7 @@ async function generateImages() {
     }
 
     progressFill.style.width = '20%';
-    progressText.textContent = useReferences ? 'Generating with references (Flux.2 Pro)...' : 'Sending to Replicate...';
+    progressText.textContent = useReferences ? 'Generating with Kontext (character locked)...' : 'Sending to Replicate...';
 
     let urls = [];
 
@@ -1833,11 +1830,8 @@ async function generateThumbnail() {
     if (useReferences) {
       model = FLUX2_MODEL;
       cost = FLUX2_REF_COST;
-      input = { prompt, aspect_ratio: '16:9', output_format: 'webp', output_quality: 95 };
-      refs.forEach((img, i) => {
-        input[i === 0 ? 'input_image' : 'input_image_' + (i + 1)] = img;
-      });
-      progressText.textContent = 'Generating with references (Flux.2 Pro)...';
+      input = { prompt, input_image: refs[0], aspect_ratio: '16:9', output_format: 'webp', output_quality: 95 };
+      progressText.textContent = 'Generating with Kontext (character locked)...';
     } else {
       model = IMG_MODELS['flux-pro']; // Flux 1.1 Pro
       cost = 0.055;
