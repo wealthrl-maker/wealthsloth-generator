@@ -1419,8 +1419,7 @@ async function generateImages() {
         prompt: prompt,
         input_image: refs[0],
         aspect_ratio: fluxAspect(state.selectedAspect),
-        output_format: 'webp',
-        output_quality: 90
+        output_format: 'png'
       };
       // Kontext Pro: ONE master image + edit instruction. Prompt passes through unmodified.
     } else {
@@ -1830,7 +1829,7 @@ async function generateThumbnail() {
     if (useReferences) {
       model = FLUX2_MODEL;
       cost = FLUX2_REF_COST;
-      input = { prompt, input_image: refs[0], aspect_ratio: '16:9', output_format: 'webp', output_quality: 95 };
+      input = { prompt, input_image: refs[0], aspect_ratio: '16:9', output_format: 'png' };
       progressText.textContent = 'Generating with Kontext (character locked)...';
     } else {
       model = IMG_MODELS['flux-pro']; // Flux 1.1 Pro
